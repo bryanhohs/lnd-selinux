@@ -1,0 +1,6 @@
+/usr/local/bin/lncli      gen_context(system_u:object_r:lnd_exec_t,s0)
+/usr/local/sbin/lnd       gen_context(system_u:object_r:lnd_exec_t,s0)
+/etc/lnd(/.*)?            gen_context(system_u:object_r:lnd_conf_t,s0)
+/var/lib/lnd(/.*)?        gen_context(system_u:object_r:lnd_var_lib_t,s0)
+/var/log/lnd(/.*)?        gen_context(system_u:object_r:lnd_log_t,s0)
+/var/run/lnd(/.*)?        gen_context(system_u:object_r:lnd_var_run_t,s0)

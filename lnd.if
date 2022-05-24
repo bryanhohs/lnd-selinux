@@ -1,0 +1,156 @@
+
+## <summary>policy for lnd</summary>
+
+########################################
+## <summary>
+##    Transition to lnd.
+## </summary>
+## <param name="domain">
+## <summary>
+##    Domain allowed to transition.
+## </summary>
+## </param>
+#
+interface(`lnd_domtrans',`
+    gen_require(`
+        type lnd_t, lnd_exec_t;
+    ')
+
+    corecmd_search_bin($1)
+    domtrans_pattern($1, lnd_exec_t, lnd_t)
+')
+
+
+########################################
+## <summary>
+##    Execute lnd server in the lnd domain.
+## </summary>
+## <param name="domain">
+##    <summary>
+##    Domain allowed access.
+##    </summary>
+## </param>
+#
+interface(`lnd_initrc_domtrans',`
+    gen_require(`
+        type lnd_initrc_exec_t;
+    ')
+
+    init_labeled_script_domtrans($1, lnd_initrc_exec_t)
+')
+
+
+########################################
+## <summary>
+##    Search lnd lib directories.
+## </summary>
+## <param name="domain">
+##    <summary>
+##    Domain allowed access.
+##    </summary>
+## </param>
+#
+interface(`lnd_search_lib',`
+    gen_require(`
+        type lnd_var_lib_t;
+    ')
+
+    allow $1 lnd_var_lib_t:dir search_dir_perms;
+    files_search_var_lib($1)
+')
+
+########################################
+## <summary>
+##    Read lnd lib files.
+## </summary>
+## <param name="domain">
+##    <summary>
+##    Domain allowed access.
+##    </summary>
+## </param>
+#
+interface(`lnd_read_lib_files',`
+    gen_require(`
+        type lnd_var_lib_t;
+    ')
+
+    files_search_var_lib($1)
+    read_files_pattern($1, lnd_var_lib_t, lnd_var_lib_t)
+')
+
+########################################
+## <summary>
+##    Manage lnd lib files.
+## </summary>
+## <param name="domain">
+##    <summary>
+##    Domain allowed access.
+##    </summary>
+## </param>
+#
+interface(`lnd_manage_lib_files',`
+    gen_require(`
+        type lnd_var_lib_t;
+    ')
+
+    files_search_var_lib($1)
+    manage_files_pattern($1, lnd_var_lib_t, lnd_var_lib_t)
+')
+
+########################################
+## <summary>
+##    Manage lnd lib directories.
+## </summary>
+## <param name="domain">
+##    <summary>
+##    Domain allowed access.
+##    </summary>
+## </param>
+#
+interface(`lnd_manage_lib_dirs',`
+    gen_require(`
+        type lnd_var_lib_t;
+    ')
+
+    files_search_var_lib($1)
+    manage_dirs_pattern($1, lnd_var_lib_t, lnd_var_lib_t)
+')
+
+
+########################################
+## <summary>
+##    All of the rules required to administrate
+##    an lnd environment
+## </summary>
+## <param name="domain">
+##    <summary>
+##    Domain allowed access.
+##    </summary>
+## </param>
+## <param name="role">
+##    <summary>
+##    Role allowed access.
+##    </summary>
+## </param>
+## <rolecap/>
+#
+interface(`lnd_admin',`
+    gen_require(`
+        type lnd_t;
+        type lnd_initrc_exec_t;
+        type lnd_var_lib_t;
+    ')
+
+    allow $1 lnd_t:process { ptrace signal_perms };
+    ps_process_pattern($1, lnd_t)
+
+    lnd_initrc_domtrans($1)
+    domain_system_change_exemption($1)
+    role_transition $2 lnd_initrc_exec_t system_r;
+    allow $2 system_r;
+
+    files_search_var_lib($1)
+    admin_pattern($1, lnd_var_lib_t)
+
+')
+

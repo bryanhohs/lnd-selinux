@@ -1,0 +1,83 @@
+policy_module(lnd, 2.0)
+
+require {
+    type tor_port_t;
+}
+
+type lnd_t;
+type lnd_exec_t;
+init_daemon_domain(lnd_t, lnd_exec_t)
+
+type lnd_initrc_exec_t;
+init_script_file(lnd_initrc_exec_t)
+
+type lnd_conf_t;
+files_type(lnd_conf_t)
+
+type lnd_var_lib_t;
+files_type(lnd_var_lib_t)
+
+type lnd_var_run_t;
+files_type(lnd_var_run_t)
+
+type lnd_log_t;
+logging_log_file(lnd_log_t)
+
+type lnd_port_t;
+corenet_port(lnd_port_t)
+
+allow lnd_t self:process { fork };
+allow lnd_t self:fifo_file rw_fifo_file_perms;
+allow lnd_t self:unix_stream_socket create_stream_socket_perms;
+
+manage_dirs_pattern(lnd_t, lnd_conf_t, lnd_conf_t)
+manage_files_pattern(lnd_t, lnd_conf_t, lnd_conf_t)
+
+manage_dirs_pattern(lnd_t, lnd_var_lib_t, lnd_var_lib_t)
+manage_files_pattern(lnd_t, lnd_var_lib_t, lnd_var_lib_t)
+files_var_lib_filetrans(lnd_t, lnd_var_lib_t, { dir file })
+
+manage_dirs_pattern(lnd_t, lnd_var_run_t, lnd_var_run_t)
+manage_files_pattern(lnd_t, lnd_var_run_t, lnd_var_run_t)
+
+manage_dirs_pattern(lnd_t, lnd_log_t, lnd_log_t)
+manage_files_pattern(lnd_t, lnd_log_t, lnd_log_t)
+logging_log_filetrans(lnd_t, lnd_log_t, { dir file lnk_file })
+
+sysnet_dns_name_resolve(lnd_t)
+corenet_all_recvfrom_unlabeled(lnd_t)
+
+allow lnd_t self:tcp_socket create_stream_socket_perms;
+corenet_tcp_sendrecv_generic_if(lnd_t)
+corenet_tcp_sendrecv_generic_node(lnd_t)
+corenet_tcp_sendrecv_all_ports(lnd_t)
+corenet_tcp_bind_generic_node(lnd_t)
+
+gen_require(`
+    type lnd_port_t;
+')
+allow lnd_t lnd_port_t:tcp_socket name_bind;
+
+gen_require(`
+    type lnd_port_t;
+')
+allow lnd_t lnd_port_t:tcp_socket name_connect;
+
+gen_require(`
+    type tor_port_t;
+')
+allow lnd_t tor_port_t:tcp_socket name_connect;
+
+domain_use_interactive_fds(lnd_t)
+
+files_read_etc_files(lnd_t)
+
+miscfiles_read_localization(lnd_t)
+
+#allow lnd_t lnd_exec_t:file execute_no_trans;
+allow lnd_t self:process setsched;
+corecmd_exec_bin(lnd_t)
+corenet_tcp_connect_http_port(lnd_t)
+dev_read_urand(lnd_t)
+fs_getattr_xattr_fs(lnd_t)
+kernel_read_system_state(lnd_t)
